@@ -1,21 +1,9 @@
 {
   "files": [
-    "scripts/copyQueries.js",
-    "scripts/copyPublic.js",
-
-    "public/index.html",
-    "public/admin.html",
-
-    "src/config/db.ts",
-    "src/config/project.schema.ts",
-
     "src/queries/queriesFile.json",
 
     "src/routes/projects.ts",
     "src/routes/users.ts",
-
-    "src/services/authMiddleware.ts",
-    "src/services/logs.ts",
 
     "src/server.ts",
     "src/App.tsx",

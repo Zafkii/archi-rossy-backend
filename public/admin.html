@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin</title>
+  </head>
+  <body>
+    <h2>Panel Admin</h2>
+
+    <button onclick="goHome()">Ir a la web</button>
+    <button onclick="logout()">Cerrar sesión</button>
+
+    <script>
+      const token = localStorage.getItem("token")
+
+      if (!token) {
+        window.location.href = "/"
+      }
+
+      function logout() {
+        localStorage.removeItem("token")
+        window.location.href = "/"
+      }
+
+      function goHome() {
+        window.open("/", "_blank")
+      }
+    </script>
+  </body>
+</html>

@@ -1,81 +1,29 @@
-# ================================================
-# 🔥 Backend Node/Express ignores
-# ================================================
+# Node
 node_modules/
+
+# Build
 dist/
+
+# Env
+.env
+.env.local
+.env.production
+
+# Logs
+logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Compilados del panel admin
-public/bundle.js
-public/build/
-public/*.map
-
-# UI Build Tools
-bundle.js
-build-ui.js.map
-
-# PM2 logs
-.pids
-logs/
-
-# ================================================
-# 🔐 Environment files (NO SE SUBEN)
-# ================================================
-.env
-.env.*
-!.env.example       # pero sí permitir subir un archivo ejemplo
-
-# ================================================
-# 🧹 IDE settings
-# ================================================
-.vscode/
-.idea/
-*.swp
-
-
-# ================================================
-# 🐧 Sistemas operativos
-# ================================================
+# OS
 .DS_Store
 Thumbs.db
 
-# ================================================
-# 🧰 Go project ignores
-# ================================================
-GoApp/bin/
-GoApp/build/
-GoApp/*.exe
-GoApp/*.dll
+# IDE
+.vscode/
+.idea/
 
-# Archivos temporales de Go
-*.test
-*.out
+# Typescript
+*.tsbuildinfo
 
-# ================================================
-# 🔗 PostgreSQL dump files
-# ================================================
-*.sql
-
-# ================================================
-# ⚡ Parcel/webpack/craco
-# ================================================
-.cache/
-parcel-cache/
-
-# ================================================
-# 🔐 Claves y certificados
-# ================================================
-*.pem
-*.key
-*.crt
-
- ================================================
-# ✔️ Otros
-# ================================================
-*.tmp
-*.temp
-db.md
-project-context.md
+# Optional
+coverage/

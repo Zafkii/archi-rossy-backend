@@ -1,31 +1,20 @@
-import express, { Request, Response } from "express"
-import { getDB } from "../config/db.js"
+import { Router } from "express"
+import { pool } from "../config/db.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { authenticateToken } from "../services/authMiddleware.js"
-import { checkPermission } from "../services/permissionMiddleware.js"
-import { fileURLToPath } from "url"
-import path from "path"
-import fs from "fs"
+import queriesFile from "../queries/queriesFile.json" with { type: "json" }
+import { randomUUID } from "crypto" // 🔥 IMPORTANTE
 
-// ❤️ FIX para poder usar __dirname en ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const router = Router()
 
-// Cargar JSON sin usar "assert { type: 'json' }"
-const queriesFile = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../queries/queriesFile.json"), "utf8")
-)
-
-const router = express.Router()
-
-// REGISTRO PÚBLICO — solo si no existen usuarios
-router.post("/register", async (req: Request, res: Response) => {
+// 🔓 REGISTRO (solo una vez)
+router.post("/register", async (req, res) => {
   try {
-    const { name, username, password, role = "admin" } = req.body
+    const { name, username, password } = req.body
 
-    const result = await getDB().query("SELECT COUNT(*) FROM users")
-    const count = parseInt((result.rows as any[])[0].count)
+    const result = await pool.query("SELECT COUNT(*) FROM users")
+    const count = parseInt(result.rows[0].count)
 
     if (count > 0) {
       res.status(403).json({ error: "Registration closed" })
@@ -33,12 +22,14 @@ router.post("/register", async (req: Request, res: Response) => {
     }
 
     const hash = await bcrypt.hash(password, 10)
+    const id = randomUUID() // 🔥 GENERAR ID
 
-    await getDB().query(queriesFile.queries.users.insert, [
+    await pool.query(queriesFile.queries.users.insert, [
+      id,
       name,
       username,
       hash,
-      role,
+      "admin",
     ])
 
     res.status(201).json({ message: "Admin registered successfully" })
@@ -48,14 +39,14 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 })
 
-// LOGIN
-router.post("/login", async (req: Request, res: Response) => {
+// 🔓 LOGIN
+router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body
 
-    const result = await getDB().query(
+    const result = await pool.query(
       queriesFile.queries.users.selectByUsername,
-      [username]
+      [username],
     )
 
     if (result.rows.length === 0) {
@@ -63,7 +54,7 @@ router.post("/login", async (req: Request, res: Response) => {
       return
     }
 
-    const user = (result.rows as any[])[0]
+    const user = result.rows[0]
 
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) {
@@ -72,14 +63,14 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, username: user.username },
       process.env.JWT_SECRET || "supersecret",
-      { expiresIn: "8h" }
+      { expiresIn: "8h" },
     )
 
     res.json({
       token,
-      user: { id: user.id, username: user.username, role: user.role },
+      user: { id: user.id, username: user.username },
     })
   } catch (err) {
     console.error("❌ Login error:", err)
@@ -87,99 +78,81 @@ router.post("/login", async (req: Request, res: Response) => {
   }
 })
 
-// LISTAR USUARIOS
-router.get(
-  "/",
-  authenticateToken,
-  checkPermission("users", "list"),
-  async (_: Request, res: Response) => {
-    try {
-      const { rows } = await getDB().query(queriesFile.queries.users.selectAll)
-      res.json(rows)
-    } catch (err) {
-      console.error("❌ List users error:", err)
-      res.status(500).json({ error: "Internal error" })
-    }
-  }
-)
-
-// CREAR USUARIO
-router.post(
-  "/",
-  authenticateToken,
-  checkPermission("users", "create"),
-  async (req: Request, res: Response) => {
-    try {
-      const { name, username, password, role } = req.body
-      const hash = await bcrypt.hash(password, 10)
-
-      await getDB().query(queriesFile.queries.users.insert, [
-        name,
-        username,
-        hash,
-        role,
-      ])
-
-      res.status(201).json({ message: "User created" })
-    } catch (err) {
-      console.error("❌ Create user error:", err)
-      res.status(500).json({ error: "Internal error" })
-    }
-  }
-)
-
-// ACTUALIZAR USUARIO
-router.put(
-  "/:id",
-  authenticateToken,
-  checkPermission("users", "update"),
-  async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params
-      const { name, username, password, role } = req.body
-
-      const hash = await bcrypt.hash(password, 10)
-
-      await getDB().query(queriesFile.queries.users.update, [
-        name,
-        username,
-        hash,
-        role,
-        id,
-      ])
-
-      res.json({ message: "User updated" })
-    } catch (err) {
-      console.error("❌ Update user error:", err)
-      res.status(500).json({ error: "Internal error" })
-    }
-  }
-)
-
-// ELIMINAR USUARIO
-router.delete(
-  "/:id",
-  authenticateToken,
-  checkPermission("users", "delete"),
-  async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params
-
-      await getDB().query(queriesFile.queries.users.delete, [id])
-
-      res.json({ message: "User deleted" })
-    } catch (err) {
-      console.error("❌ Delete user error:", err)
-      res.status(500).json({ error: "Internal error" })
-    }
-  }
-)
-
-// SABER SI EXISTEN USUARIOS
-router.get("/exists", async (_req: Request, res: Response) => {
+// 🔒 LISTAR
+router.get("/", authenticateToken, async (_req, res) => {
   try {
-    const result = await getDB().query("SELECT COUNT(*) FROM users")
-    const count = parseInt((result.rows as any[])[0].count)
+    const { rows } = await pool.query(queriesFile.queries.users.selectAll)
+    res.json(rows)
+  } catch (err) {
+    console.error("❌ List users error:", err)
+    res.status(500).json({ error: "Internal error" })
+  }
+})
+
+// 🔒 CREAR
+router.post("/", authenticateToken, async (req, res) => {
+  try {
+    const { name, username, password } = req.body
+    const hash = await bcrypt.hash(password, 10)
+    const id = randomUUID() // 🔥 TAMBIÉN AQUÍ
+
+    await pool.query(queriesFile.queries.users.insert, [
+      id,
+      name,
+      username,
+      hash,
+      "admin",
+    ])
+
+    res.status(201).json({ message: "User created" })
+  } catch (err) {
+    console.error("❌ Create user error:", err)
+    res.status(500).json({ error: "Internal error" })
+  }
+})
+
+// 🔒 UPDATE
+router.put("/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params
+    const { name, username, password } = req.body
+
+    const hash = await bcrypt.hash(password, 10)
+
+    await pool.query(queriesFile.queries.users.update, [
+      name,
+      username,
+      hash,
+      "admin",
+      id,
+    ])
+
+    res.json({ message: "User updated" })
+  } catch (err) {
+    console.error("❌ Update user error:", err)
+    res.status(500).json({ error: "Internal error" })
+  }
+})
+
+// 🔒 DELETE
+router.delete("/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params
+
+    await pool.query(queriesFile.queries.users.delete, [id])
+
+    res.json({ message: "User deleted" })
+  } catch (err) {
+    console.error("❌ Delete user error:", err)
+    res.status(500).json({ error: "Internal error" })
+  }
+})
+
+// 🔓 EXISTS
+router.get("/exists", async (_req, res) => {
+  try {
+    const result = await pool.query("SELECT COUNT(*) FROM users")
+    const count = parseInt(result.rows[0].count)
 
     res.json({ exists: count > 0 })
   } catch (err) {

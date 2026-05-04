@@ -1,7 +1,7 @@
 {
-  "name": "app_prod_backend",
+  "name": "archi_rossy_backend",
   "version": "0.0.1",
-  "description": "application production backend + React UI",
+  "description": "Rossy's architecture projects  backend + React UI",
   "author": "Zafkii",
   "license": "MIT",
   "type": "module",
@@ -10,15 +10,11 @@
     "node": "20.x"
   },
   "scripts": {
-    "fiximp": "node fix-imports.js",
-    "build": "npm run build:ui && tsc && node scripts/copyQueries.js && node scripts/copyPublic.js",
-    "start": "cross-env TZ=America/La_Paz node dist/server.js",
-    "build:ui": "node build-ui.js",
-    "build:all": "npm run build && npm run build:ui",
-    "build:exe": "npm run build && pkg dist/server.js --targets node18-win-x64 --output licenseSV.exe",
-    "dev": "cross-env TZ=America/La_Paz tsx watch src/server.ts",
-    "dev:ui": "esbuild src/ui/index.tsx --bundle --outfile=public/bundle.js --servedir=public --watch",
-    "c": "tsx scripts/exportProject.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc && node scripts/copyQueries.js && node scripts/copyPublic.js",
+    "start": "node dist/server.js",
+    "c": "tsx scripts/exportProject.ts",
+    "ctest": "tsx scripts/exportProjecttest.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -32,12 +28,13 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
+    "@types/express": "^4.17.25",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.21",
     "@types/pg": "^8.15.6",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/react-router-dom": "^5.3.3",
     "@types/useragent": "^2.3.4",
     "@types/ws": "^8.18.1",
     "cross-env": "^10.1.0",

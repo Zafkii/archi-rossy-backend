@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "nodenext",
     "jsx": "react-jsx",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
@@ -10,7 +10,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "src"
   },
   "include": ["src", "src/queries/queriesFile.json"]
 }
