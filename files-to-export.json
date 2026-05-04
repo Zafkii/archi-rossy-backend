@@ -1,0 +1,17 @@
+{
+  "files": [
+    "src/config/db.ts",
+
+    "src/queries/queriesFile.json",
+
+    "src/routes/clients.ts",
+    "src/routes/projects.ts",
+    "src/routes/users.ts",
+
+    "src/server.ts",
+
+    ".env",
+    "tsconfig.json",
+    "package.json"
+  ]
+}

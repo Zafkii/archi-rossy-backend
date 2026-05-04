@@ -1,0 +1,49 @@
+{
+  "name": "app_prod_backend",
+  "version": "0.0.1",
+  "description": "application production backend + React UI",
+  "author": "Zafkii",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/server.js",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "fiximp": "node fix-imports.js",
+    "build": "npm run build:ui && tsc && node scripts/copyQueries.js && node scripts/copyPublic.js",
+    "start": "cross-env TZ=America/La_Paz node dist/server.js",
+    "build:ui": "node build-ui.js",
+    "build:all": "npm run build && npm run build:ui",
+    "build:exe": "npm run build && pkg dist/server.js --targets node18-win-x64 --output licenseSV.exe",
+    "dev": "cross-env TZ=America/La_Paz tsx watch src/server.ts",
+    "dev:ui": "esbuild src/ui/index.tsx --bundle --outfile=public/bundle.js --servedir=public --watch",
+    "c": "tsx scripts/exportProject.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.15.21",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/useragent": "^2.3.4",
+    "@types/ws": "^8.18.1",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.27.0",
+    "pkg": "^5.8.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
