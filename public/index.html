@@ -8,41 +8,117 @@
   <body>
     <h2>Login</h2>
 
-    <input id="username" placeholder="Usuario" />
-    <input id="password" type="password" placeholder="Password" />
+    <!doctype html>
 
-    <br /><br />
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Admin</title>
+        <link rel="icon" href="/logo.ico" />
+      </head>
+      <body>
+        <h2>Login</h2>
 
-    <button onclick="login()">Login</button>
+        ```
+        <input id="username" placeholder="Usuario" />
+        <input id="password" type="password" placeholder="Password" />
 
-    <script>
-      async function login() {
-        const username = document.getElementById("username").value
-        const password = document.getElementById("password").value
+        <br /><br />
 
-        try {
-          const res = await fetch("/users/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, password }),
-          })
+        <button onclick="login()">Login</button>
 
-          const data = await res.json()
+        <!-- 🔥 REGISTRO (solo aparece si no hay usuarios) -->
+        <div id="register-section" style="display: none; margin-top: 30px">
+          <h3>Crear Admin</h3>
 
-          if (!res.ok) {
-            alert(data.error)
-            return
+          <input id="reg-name" placeholder="Nombre" />
+          <input id="reg-username" placeholder="Usuario" />
+          <input id="reg-password" type="password" placeholder="Password" />
+
+          <br /><br />
+
+          <button onclick="register()">Registrar</button>
+        </div>
+
+        <script>
+          // 🔐 LOGIN
+          async function login() {
+            const username = document.getElementById("username").value
+            const password = document.getElementById("password").value
+
+            try {
+              const res = await fetch("/users/login", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+              })
+
+              const data = await res.json()
+
+              if (!res.ok) {
+                alert(data.error)
+                return
+              }
+
+              localStorage.setItem("token", data.token)
+
+              window.location.href = "/admin.html"
+            } catch (err) {
+              alert("Error de conexión")
+            }
           }
 
-          localStorage.setItem("token", data.token)
+          // 🆕 REGISTRO (solo si no hay usuarios)
+          async function register() {
+            const name = document.getElementById("reg-name").value
+            const username = document.getElementById("reg-username").value
+            const password = document.getElementById("reg-password").value
 
-          window.location.href = "/admin.html"
-        } catch (err) {
-          alert("Error de conexión")
-        }
-      }
-    </script>
+            try {
+              const res = await fetch("/users/register", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, username, password }),
+              })
+
+              const data = await res.json()
+
+              if (!res.ok) {
+                alert(data.error)
+                return
+              }
+
+              alert("Admin creado, ahora inicia sesión")
+              location.reload()
+            } catch (err) {
+              alert("Error de conexión")
+            }
+          }
+
+          // 🔍 VERIFICAR SI EXISTEN USUARIOS
+          async function checkUsers() {
+            try {
+              const res = await fetch("/users/exists")
+              const data = await res.json()
+
+              if (!data.exists) {
+                document.getElementById("register-section").style.display =
+                  "block"
+              }
+            } catch (err) {
+              console.error("Error checking users:", err)
+            }
+          }
+
+          // 🚀 Ejecutar al cargar
+          checkUsers()
+        </script>
+        ```
+      </body>
+    </html>
   </body>
 </html>
