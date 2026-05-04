@@ -13,5 +13,11 @@
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src", "src/queries/queriesFile.json"]
+  "include": [
+    "src/server.ts",
+    "src/routes",
+    "src/services",
+    "src/config",
+    "src/queries/queriesFile.json"
+  ]
 }

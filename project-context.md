@@ -74,10 +74,12 @@ console.log("📁 Copied public → dist/public")
 
 ```
 <!doctype html>
+
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Admin Login</title>
+    <title>Admin</title>
+    <link rel="icon" href="/logo.ico" />
   </head>
   <body>
     <h2>Login</h2>
@@ -89,7 +91,21 @@ console.log("📁 Copied public → dist/public")
 
     <button onclick="login()">Login</button>
 
+    <!-- 🔥 REGISTRO (solo aparece si no hay usuarios) -->
+    <div id="register-section" style="display: none; margin-top: 30px">
+      <h3>Crear Admin</h3>
+
+      <input id="reg-name" placeholder="Nombre" />
+      <input id="reg-username" placeholder="Usuario" />
+      <input id="reg-password" type="password" placeholder="Password" />
+
+      <br /><br />
+
+      <button onclick="register()">Registrar</button>
+    </div>
+
     <script>
+      // 🔐 LOGIN
       async function login() {
         const username = document.getElementById("username").value
         const password = document.getElementById("password").value
@@ -111,12 +127,57 @@ console.log("📁 Copied public → dist/public")
           }
 
           localStorage.setItem("token", data.token)
-
           window.location.href = "/admin.html"
         } catch (err) {
           alert("Error de conexión")
         }
       }
+
+      // 🆕 REGISTRO
+      async function register() {
+        const name = document.getElementById("reg-name").value
+        const username = document.getElementById("reg-username").value
+        const password = document.getElementById("reg-password").value
+
+        try {
+          const res = await fetch("/users/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, username, password }),
+          })
+
+          const data = await res.json()
+
+          if (!res.ok) {
+            alert(data.error)
+            return
+          }
+
+          alert("Admin creado, ahora inicia sesión")
+          location.reload()
+        } catch (err) {
+          alert("Error de conexión")
+        }
+      }
+
+      // 🔍 VERIFICAR USUARIOS
+      async function checkUsers() {
+        try {
+          const res = await fetch("/users/exists")
+          const data = await res.json()
+
+          if (!data.exists) {
+            document.getElementById("register-section").style.display = "block"
+          }
+        } catch (err) {
+          console.error("Error:", err)
+        }
+      }
+
+      // 🚀 INIT
+      checkUsers()
     </script>
   </body>
 </html>
@@ -663,45 +724,62 @@ logsRouter.get("/dispositivos", (_: Request, res: Response) => {
 
 ```ts
 import dotenv from "dotenv"
+dotenv.config()
+
 import express from "express"
 import cors from "cors"
+import path from "path"
+import { fileURLToPath } from "url"
 
 import projectsRoutes from "./routes/projects.js"
 import usersRoutes from "./routes/users.js"
 
-import path from "path"
-import { fileURLToPath } from "url"
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-dotenv.config()
-
 const app = express()
 
-app.use(cors())
+// 🔥 Middleware base
+app.use(
+  cors(),
+  // ACA PON LA WEBSITE DE TU FRONTEND EN PRODUCCIÓN, POR EJEMPLO:
+  //{origin: ["https://tu-dominio.com"]}
+)
 app.use(express.json())
 
-app.use(express.static(path.join(__dirname, "public")))
+// 🔥 Detectar entorno (dev vs build)
+const isProd = process.env.NODE_ENV === "production"
+
+const publicPath = isProd
+  ? path.join(__dirname, "../public") // dist/public
+  : path.join(process.cwd(), "public") // raíz del proyecto
+
+// 🔥 Archivos estáticos
+app.use(express.static(publicPath))
+
+// 🔥 Ruta principal (login)
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"))
+  res.sendFile(path.join(publicPath, "index.html"))
 })
 
-app.get("/", (_req, res) => {
-  res.send("🚀 API running")
-})
-
+// 🔥 Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" })
 })
 
+// 🔥 API
 app.use("/projects", projectsRoutes)
 app.use("/users", usersRoutes)
+
+// 🔥 404 opcional (útil para debug)
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" })
+})
 
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
-  console.log(`✅ HTTP Server running on http://localhost:${PORT}`)
+  console.log(`✅ Server running on http://localhost:${PORT}`)
 })
 
 ```
@@ -966,9 +1044,9 @@ PORT=3000
 
 ```json
 {
-  "name": "app_prod_backend",
+  "name": "archi_rossy_backend",
   "version": "0.0.1",
-  "description": "application production backend + React UI",
+  "description": "Rossy's architecture projects  backend + React UI",
   "author": "Zafkii",
   "license": "MIT",
   "type": "module",
