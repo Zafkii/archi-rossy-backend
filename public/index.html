@@ -1,120 +1,108 @@
 <!doctype html>
+
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Admin Login</title>
+    <title>Admin</title>
     <link rel="icon" href="/logo.ico" />
   </head>
   <body>
-    <!doctype html>
+    <h2>Login</h2>
 
-    <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Admin</title>
-        <link rel="icon" href="/logo.ico" />
-      </head>
-      <body>
-        <h2>Login</h2>
+    <input id="username" placeholder="Usuario" />
+    <input id="password" type="password" placeholder="Password" />
 
-        <input id="username" placeholder="Usuario" />
-        <input id="password" type="password" placeholder="Password" />
+    <br /><br />
 
-        <br /><br />
+    <button onclick="login()">Login</button>
 
-        <button onclick="login()">Login</button>
+    <!-- 🔥 REGISTRO (solo aparece si no hay usuarios) -->
+    <div id="register-section" style="display: none; margin-top: 30px">
+      <h3>Crear Admin</h3>
 
-        <!-- 🔥 REGISTRO (solo aparece si no hay usuarios) -->
-        <div id="register-section" style="display: none; margin-top: 30px">
-          <h3>Crear Admin</h3>
+      <input id="reg-name" placeholder="Nombre" />
+      <input id="reg-username" placeholder="Usuario" />
+      <input id="reg-password" type="password" placeholder="Password" />
 
-          <input id="reg-name" placeholder="Nombre" />
-          <input id="reg-username" placeholder="Usuario" />
-          <input id="reg-password" type="password" placeholder="Password" />
+      <br /><br />
 
-          <br /><br />
+      <button onclick="register()">Registrar</button>
+    </div>
 
-          <button onclick="register()">Registrar</button>
-        </div>
+    <script>
+      // 🔐 LOGIN
+      async function login() {
+        const username = document.getElementById("username").value
+        const password = document.getElementById("password").value
 
-        <script>
-          // 🔐 LOGIN
-          async function login() {
-            const username = document.getElementById("username").value
-            const password = document.getElementById("password").value
+        try {
+          const res = await fetch("/users/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+          })
 
-            try {
-              const res = await fetch("/users/login", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-              })
+          const data = await res.json()
 
-              const data = await res.json()
-
-              if (!res.ok) {
-                alert(data.error)
-                return
-              }
-
-              localStorage.setItem("token", data.token)
-
-              window.location.href = "/admin.html"
-            } catch (err) {
-              alert("Error de conexión")
-            }
+          if (!res.ok) {
+            alert(data.error)
+            return
           }
 
-          // 🆕 REGISTRO (solo si no hay usuarios)
-          async function register() {
-            const name = document.getElementById("reg-name").value
-            const username = document.getElementById("reg-username").value
-            const password = document.getElementById("reg-password").value
+          localStorage.setItem("token", data.token)
+          window.location.href = "/admin.html"
+        } catch (err) {
+          alert("Error de conexión")
+        }
+      }
 
-            try {
-              const res = await fetch("/users/register", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name, username, password }),
-              })
+      // 🆕 REGISTRO
+      async function register() {
+        const name = document.getElementById("reg-name").value
+        const username = document.getElementById("reg-username").value
+        const password = document.getElementById("reg-password").value
 
-              const data = await res.json()
+        try {
+          const res = await fetch("/users/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, username, password }),
+          })
 
-              if (!res.ok) {
-                alert(data.error)
-                return
-              }
+          const data = await res.json()
 
-              alert("Admin creado, ahora inicia sesión")
-              location.reload()
-            } catch (err) {
-              alert("Error de conexión")
-            }
+          if (!res.ok) {
+            alert(data.error)
+            return
           }
 
-          // 🔍 VERIFICAR SI EXISTEN USUARIOS
-          async function checkUsers() {
-            try {
-              const res = await fetch("/users/exists")
-              const data = await res.json()
+          alert("Admin creado, ahora inicia sesión")
+          location.reload()
+        } catch (err) {
+          alert("Error de conexión")
+        }
+      }
 
-              if (!data.exists) {
-                document.getElementById("register-section").style.display =
-                  "block"
-              }
-            } catch (err) {
-              console.error("Error checking users:", err)
-            }
+      // 🔍 VERIFICAR USUARIOS
+      async function checkUsers() {
+        try {
+          const res = await fetch("/users/exists")
+          const data = await res.json()
+
+          if (!data.exists) {
+            document.getElementById("register-section").style.display = "block"
           }
+        } catch (err) {
+          console.error("Error:", err)
+        }
+      }
 
-          // 🚀 Ejecutar al cargar
-          checkUsers()
-        </script>
-      </body>
-    </html>
+      // 🚀 INIT
+      checkUsers()
+    </script>
   </body>
 </html>
