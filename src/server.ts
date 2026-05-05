@@ -19,36 +19,40 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// 🔥 Detectar entorno (dev vs build)
+// 🔥 Detectar entorno
 const isProd = process.env.NODE_ENV === "production"
 
 const publicPath = isProd
-  ? path.join(__dirname, "../public") // dist/public
-  : path.join(process.cwd(), "public") // raíz del proyecto
+  ? path.join(__dirname, "../public") // producción
+  : path.join(process.cwd(), "public") // desarrollo
 
-// 🔥 Archivos estáticos
-app.use(express.static(publicPath))
-
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"))
-})
-
-// 🔥 Ruta principal (login)
-app.get("/", (_req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"))
-})
-
-// 🔥 Health check
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" })
-})
-
-// 🔥 API
+// =========================
+// 🔥 API (PRIMERO SIEMPRE)
+// =========================
 app.use("/projects", projectsRoutes)
 app.use("/users", usersRoutes)
 app.use("/content", contentRoutes)
 
-// 🔥 404 opcional (útil para debug)
+// 🔥 Health check (opcional pero útil)
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" })
+})
+
+// =========================
+// 🔥 Archivos estáticos
+// =========================
+app.use(express.static(publicPath))
+
+// =========================
+// 🔥 SPA fallback (AL FINAL)
+// =========================
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"))
+})
+
+// =========================
+// 🔥 404 API (opcional)
+// =========================
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" })
 })

@@ -213,7 +213,8 @@ console.log("📁 Copied public → dist/public")
 
       // 🔥 NUEVO
       function goWebsite() {
-        const WEBSITE_URL = "https://TU-FRONTEND.up.railway.app" // 👈 cambia esto
+        const WEBSITE_URL =
+          "https://archi-rossy-frontend-production.up.railway.app" // 👈 cambia esto
         window.open(WEBSITE_URL, "_blank")
       }
     </script>
@@ -609,10 +610,12 @@ export default router
 import express from "express"
 import crypto from "crypto"
 import { pool } from "../config/db.js"
+import { authenticateToken } from "../services/authMiddleware.js"
 import queries from "../queries/queriesFile.json" with { type: "json" }
 
 const router = express.Router()
 
+// 🔓 público (leer)
 router.get("/:section", async (req, res) => {
   try {
     const { section } = req.params
@@ -628,9 +631,14 @@ router.get("/:section", async (req, res) => {
   }
 })
 
-router.put("/", async (req, res) => {
+// 🔒 protegido (editar)
+router.put("/", authenticateToken, async (req, res) => {
   try {
     const { section, key, value } = req.body
+
+    if (!section || !key) {
+      return res.status(400).json({ error: "Missing data" })
+    }
 
     await pool.query(queries.siteContent.upsert, [
       crypto.randomUUID(),
@@ -808,12 +816,7 @@ const __dirname = path.dirname(__filename)
 const app = express()
 
 // 🔥 Middleware base
-app.use(
-  cors({
-    //link del frontend
-    origin: [""],
-  }),
-)
+app.use(cors())
 app.use(express.json())
 
 // 🔥 Detectar entorno (dev vs build)
@@ -825,6 +828,10 @@ const publicPath = isProd
 
 // 🔥 Archivos estáticos
 app.use(express.static(publicPath))
+
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"))
+})
 
 // 🔥 Ruta principal (login)
 app.get("/", (_req, res) => {
@@ -953,7 +960,10 @@ export default function Admin() {
     <div>
       <h2>Panel Admin</h2>
 
-      <a href="/" target="_blank">
+      <a
+        href="https://archi-rossy-frontend-production.up.railway.app"
+        target="_blank"
+      >
         Ir a la web
       </a>
 
