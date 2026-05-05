@@ -10,7 +10,10 @@ export default function Admin() {
     <div>
       <h2>Panel Admin</h2>
 
-      <a href="/" target="_blank">
+      <a
+        href="https://archi-rossy-frontend-production.up.railway.app"
+        target="_blank"
+      >
         Ir a la web
       </a>
 
