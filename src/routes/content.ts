@@ -1,10 +1,12 @@
 import express from "express"
 import crypto from "crypto"
 import { pool } from "../config/db.js"
+import { authenticateToken } from "../services/authMiddleware.js"
 import queries from "../queries/queriesFile.json" with { type: "json" }
 
 const router = express.Router()
 
+// 🔓 público (leer)
 router.get("/:section", async (req, res) => {
   try {
     const { section } = req.params
@@ -20,9 +22,14 @@ router.get("/:section", async (req, res) => {
   }
 })
 
-router.put("/", async (req, res) => {
+// 🔒 protegido (editar)
+router.put("/", authenticateToken, async (req, res) => {
   try {
     const { section, key, value } = req.body
+
+    if (!section || !key) {
+      return res.status(400).json({ error: "Missing data" })
+    }
 
     await pool.query(queries.siteContent.upsert, [
       crypto.randomUUID(),

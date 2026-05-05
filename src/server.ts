@@ -29,6 +29,10 @@ const publicPath = isProd
 // 🔥 Archivos estáticos
 app.use(express.static(publicPath))
 
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"))
+})
+
 // 🔥 Ruta principal (login)
 app.get("/", (_req, res) => {
   res.sendFile(path.join(publicPath, "index.html"))
