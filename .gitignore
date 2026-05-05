@@ -27,5 +27,8 @@ Thumbs.db
 
 # Optional
 coverage/
+
+#md innecessary files
+
 project-context.md
 project-contexttest.md

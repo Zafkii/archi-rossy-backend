@@ -279,6 +279,24 @@ export const projectSchema = z.object({
       "delete": "DELETE FROM public.users WHERE id = $1",
       "selectByUsername": "SELECT * FROM public.users WHERE username = $1"
     }
+  },
+  "siteContent": {
+    "selectBySection": "SELECT key, value FROM public.site_content WHERE section = $1",
+
+    "upsert": "INSERT INTO public.site_content (id, section, key, value) VALUES ($1, $2, $3, $4) ON CONFLICT (section, key) DO UPDATE SET value = EXCLUDED.value",
+
+    "delete": "DELETE FROM public.site_content WHERE section = $1 AND key = $2"
+  },
+  "projects": {
+    "selectAll": "SELECT * FROM public.projects ORDER BY title",
+
+    "selectById": "SELECT * FROM public.projects WHERE id = $1",
+
+    "insert": "INSERT INTO public.projects (id, title, description, cover_image, background_image, primary_color, secondary_color, blocks) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+
+    "update": "UPDATE public.projects SET title = $1, description = $2, cover_image = $3, background_image = $4, primary_color = $5, secondary_color = $6, blocks = $7 WHERE id = $8",
+
+    "delete": "DELETE FROM public.projects WHERE id = $1"
   }
 }
 
@@ -585,6 +603,53 @@ export default router
 
 ```
 
+## src/routes/content.ts
+
+```ts
+import express from "express"
+import crypto from "crypto"
+import { pool } from "../config/db.js"
+import queries from "../queries/queriesFile.json" with { type: "json" }
+
+const router = express.Router()
+
+router.get("/:section", async (req, res) => {
+  try {
+    const { section } = req.params
+
+    const { rows } = await pool.query(queries.siteContent.selectBySection, [
+      section,
+    ])
+
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Error fetching content" })
+  }
+})
+
+router.put("/", async (req, res) => {
+  try {
+    const { section, key, value } = req.body
+
+    await pool.query(queries.siteContent.upsert, [
+      crypto.randomUUID(),
+      section,
+      key,
+      value,
+    ])
+
+    res.json({ ok: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Error updating content" })
+  }
+})
+
+export default router
+
+```
+
 ## src/services/authMiddleware.ts
 
 ```ts
@@ -735,6 +800,7 @@ import { fileURLToPath } from "url"
 
 import projectsRoutes from "./routes/projects.js"
 import usersRoutes from "./routes/users.js"
+import contentRoutes from "./routes/content.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -744,7 +810,8 @@ const app = express()
 // 🔥 Middleware base
 app.use(
   cors({
-    origin: ["https://archi-rossy-backend-production.up.railway.app/"],
+    //link del frontend
+    origin: [""],
   }),
 )
 app.use(express.json())
@@ -772,6 +839,7 @@ app.get("/health", (_req, res) => {
 // 🔥 API
 app.use("/projects", projectsRoutes)
 app.use("/users", usersRoutes)
+app.use("/content", contentRoutes)
 
 // 🔥 404 opcional (útil para debug)
 app.use((req, res) => {

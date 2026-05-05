@@ -16,12 +16,7 @@ const __dirname = path.dirname(__filename)
 const app = express()
 
 // 🔥 Middleware base
-app.use(
-  cors({
-    //link del frontend
-    origin: [""],
-  }),
-)
+app.use(cors())
 app.use(express.json())
 
 // 🔥 Detectar entorno (dev vs build)
