@@ -18,7 +18,8 @@ const app = express()
 // 🔥 Middleware base
 app.use(
   cors({
-    origin: ["https://archi-rossy-backend-production.up.railway.app/"],
+    //link del frontend
+    origin: [""],
   }),
 )
 app.use(express.json())
