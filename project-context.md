@@ -196,7 +196,7 @@ console.log("📁 Copied public → dist/public")
   <body>
     <h2>Panel Admin</h2>
 
-    <button onclick="goHome()">Ir a la web</button>
+    <button onclick="goWebsite()">Ir a la web</button>
     <button onclick="logout()">Cerrar sesión</button>
 
     <script>
@@ -211,8 +211,10 @@ console.log("📁 Copied public → dist/public")
         window.location.href = "/"
       }
 
-      function goHome() {
-        window.open("/", "_blank")
+      // 🔥 NUEVO
+      function goWebsite() {
+        const WEBSITE_URL = "https://TU-FRONTEND.up.railway.app" // 👈 cambia esto
+        window.open(WEBSITE_URL, "_blank")
       }
     </script>
   </body>
@@ -741,9 +743,9 @@ const app = express()
 
 // 🔥 Middleware base
 app.use(
-  cors(),
-  // ACA PON LA WEBSITE DE TU FRONTEND EN PRODUCCIÓN, POR EJEMPLO:
-  //{origin: ["https://tu-dominio.com"]}
+  cors({
+    origin: ["https://archi-rossy-backend-production.up.railway.app/"],
+  }),
 )
 app.use(express.json())
 
@@ -1035,7 +1037,13 @@ PORT=3000
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src", "src/queries/queriesFile.json"]
+  "include": [
+    "src/server.ts",
+    "src/routes",
+    "src/services",
+    "src/config",
+    "src/queries/queriesFile.json"
+  ]
 }
 
 ```

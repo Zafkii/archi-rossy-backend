@@ -8,6 +8,7 @@ import { fileURLToPath } from "url"
 
 import projectsRoutes from "./routes/projects.js"
 import usersRoutes from "./routes/users.js"
+import contentRoutes from "./routes/content.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,9 +17,9 @@ const app = express()
 
 // 🔥 Middleware base
 app.use(
-  cors(),
-  // ACA PON LA WEBSITE DE TU FRONTEND EN PRODUCCIÓN, POR EJEMPLO:
-  //{origin: ["https://tu-dominio.com"]}
+  cors({
+    origin: ["https://archi-rossy-backend-production.up.railway.app/"],
+  }),
 )
 app.use(express.json())
 
@@ -45,6 +46,7 @@ app.get("/health", (_req, res) => {
 // 🔥 API
 app.use("/projects", projectsRoutes)
 app.use("/users", usersRoutes)
+app.use("/content", contentRoutes)
 
 // 🔥 404 opcional (útil para debug)
 app.use((req, res) => {

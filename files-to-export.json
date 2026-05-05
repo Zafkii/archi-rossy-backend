@@ -13,6 +13,7 @@
 
     "src/routes/projects.ts",
     "src/routes/users.ts",
+    "src/routes/content.ts",
 
     "src/services/authMiddleware.ts",
     "src/services/logs.ts",
