@@ -2,6 +2,8 @@ import { Router } from "express"
 import { pool } from "../config/db.js"
 import { projectSchema } from "../config/project.schema.js"
 import { authenticateToken } from "../services/authMiddleware.js"
+import crypto from "crypto"
+import queries from "../queries/queriesFile.json" with { type: "json" }
 
 const router = Router()
 
@@ -30,37 +32,33 @@ router.get("/:id", async (req, res) => {
 // 🔒 CREAR
 router.post("/", authenticateToken, async (req, res) => {
   try {
-    const parsed = projectSchema.parse(req.body)
+    const {
+      title,
+      description,
+      cover_image,
+      background_image,
+      primary_color,
+      secondary_color,
+      blocks,
+    } = req.body
 
-    await pool.query(
-      `INSERT INTO projects 
-      (id, title, description, cover_image, background_image, primary_color, secondary_color, blocks)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-      [
-        parsed.id,
-        parsed.title,
-        parsed.description,
-        parsed.cover_image,
-        parsed.background_image,
-        parsed.primary_color,
-        parsed.secondary_color,
-        JSON.stringify(parsed.blocks),
-      ],
-    )
+    const id = crypto.randomUUID()
 
-    res.status(201).json({ success: true })
-  } catch (err: any) {
-    console.error("❌ Create project error:", err)
+    await pool.query(queries.projects.insert, [
+      id,
+      title,
+      description || "",
+      cover_image || "",
+      background_image || "",
+      primary_color || "#000000",
+      secondary_color || "#ffffff",
+      JSON.stringify(blocks || []),
+    ])
 
-    if (err.name === "ZodError") {
-      res.status(400).json({
-        error: "Validation error",
-        details: err.errors,
-      })
-      return
-    }
-
-    res.status(500).json({ error: "Server error" })
+    res.json({ ok: true, id })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Error creating project" })
   }
 })
 

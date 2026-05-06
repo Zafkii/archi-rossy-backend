@@ -5,6 +5,10 @@
     "src/routes/projects.ts",
     "src/routes/users.ts",
 
+    "src/routes/content.ts",
+    "src/routes/projects.ts",
+    "src/routes/users.ts",
+
     "src/server.ts",
     "src/App.tsx",
     "src/api.ts",
